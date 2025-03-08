@@ -105,11 +105,11 @@ def heart():
             st.markdown("<p style='background-color:green; color:white; padding:10px;'>Prediction: Negative</p>", unsafe_allow_html=True)
             st.info("Your results show low risk for heart disease. Maintain a healthy lifestyle.")
 
-        # Show "View Accuracy" button
+        # Show "View Accuracy" button inside prediction result
         if st.button("View Accuracy"):
             st.session_state.view_accuracy = True
 
-    # Accuracy Progress
+    # Accuracy Progress (Triggered by "View Accuracy")
     if st.session_state.predicted and st.session_state.view_accuracy:
         chart(st.session_state.riskrate, "Accuracy of Risk Rate")
         pbar(st.session_state.riskrate)
