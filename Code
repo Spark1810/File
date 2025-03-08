@@ -1,0 +1,8 @@
+import streamlit as st
+import time
+
+if st.button("Accuracy of Risk Rate"):
+    progress_bar = st.progress(0)
+    for i in range(riskrate + 1):  # Progress up to the risk rate value
+        time.sleep(0.02)  # Smooth progress effect
+        progress_bar.progress(i)
