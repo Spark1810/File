@@ -1,0 +1,190 @@
+The journey was for almost 10 months. Sharvesh started the journey when he knows to read the alphabets. Now he is 5 Years old and he can confidently read any sentences of his own. Not even one day he said no to attend the class.. Rhymes..and fun time at the class where the best part to keep the children attend the class with enthusiasm. Correct amount of content delivered in each class for them to understand the concept to the fullest. Periodic assessment to thorough the subject. Over all the course was a power-packed very effective and an awesome one. Mrs. Akila took over this course this very effectively and enjoyable for kids.
+
+And this course is worth yhe pay. Mission accomplished
+
+
+
+
+We're so happy that she reads very well and here kids elder than nimisha are not reading like her.
+
+My friends are surprised by seeing her reading English
+
+
+Thanks for arranging the session. The way she explained it patiently and responded is really gud. Keep up the good work.
+
+Thank you.
+
+
+
+The class is so good and easy to understand nga. I thought it's too difficult but not. Shalini taken very boldly. I had distractions now and then by kutties, so i didn't draw. Tomorrow I wil do and send. Convey my thanks to her for d wonderful session
+
+
+Tridha was upset to know it was her last class with you. She had enjoyed and learned a lot from these lessons. A warm gratitude from our end ma'am.
+
+
+
+
+Thanks Akila for helping Mithran to learn phonics.. Kids will miss you a lot..
+
+
+
+
+
+
+As this Phonics class comes to an end, I just wanted to take a moment to sincerely thank you @Akila Arun for your dedication, patience, and incredible teaching. Your guidance has made a huge difference, helping Aarav build confidence in reading and pronunciation.
+
+We truly appreciate the effort you put into making learning engaging and enjoyable. Your passion for teaching and the way you support each student has been inspiring. Thanks to you, we have seen remarkable progress, and we are grateful for the foundation you have provided.
+
+Thank you once again for all your hard work, encouragement, and the positive impact you have had. We feel fortunate to have been part of your class!
+
+Wishing you all the best, and we hope to stay in touch.
+
+Last but not the least, Thank You Subhan @ Shailja for referring this class..
+
+
+
+
+
+import streamlit as st
+from PIL import Image
+import pandas as pd
+import pickle
+import random
+import time
+from st_circular_progress import CircularProgress
+
+# Generate random variation for risk rate
+s = random.randint(15, 40)
+
+# Load ML model
+model_filename = './model/model.pkl'
+with open(model_filename, 'rb') as file:
+    model = pickle.load(file)
+
+# Load mean and std values
+with open('model/mean_std_values.pkl', 'rb') as f:
+    mean_std_values = pickle.load(f)
+
+# Initialize session state variables
+if 'riskrate' not in st.session_state:
+    st.session_state.riskrate = None
+if 'predicted' not in st.session_state:
+    st.session_state.predicted = False
+if 'view_accuracy' not in st.session_state:
+    st.session_state.view_accuracy = False
+
+# Function to display progress bar
+def pbar(riskrate):
+    progress_bar = st.progress(0)
+    for i in range(riskrate + 1):  
+        time.sleep(0.02)  
+        progress_bar.progress(i, text="Accuracy Of Risk Rate")
+
+# Function to show circular progress
+def chart(value1, label1):
+    cp = CircularProgress(
+        value=value1, 
+        label=label1,
+        size="Large",
+        key="constant_circular_progress"
+    )
+    cp.st_circular_progress()
+
+# Function for heart disease prediction
+def heart():
+    st.title('Heart Disease Prediction')
+
+    # User Input Fields
+    age = st.slider('Age', 18, 100, 50)
+    sex = st.selectbox('Sex', ['Male', 'Female'])
+    sex_num = 1 if sex == 'Male' else 0
+    cp_options = ['Typical Angina', 'Atypical Angina', 'Non-anginal Pain', 'Asymptomatic']
+    cp = st.selectbox('Chest Pain Type', cp_options)
+    cp_num = cp_options.index(cp)
+    trestbps = st.slider('Resting Blood Pressure', 90, 200, 120)
+    chol = st.slider('Cholesterol', 100, 600, 250)
+    fbs_num = st.selectbox('Fasting Blood Sugar > 120 mg/dl', ['False', 'True']).index('True')
+    restecg_options = ['Normal', 'ST-T Abnormality', 'Left Ventricular Hypertrophy']
+    restecg = st.selectbox('Resting ECG Results', restecg_options)
+    restecg_num = restecg_options.index(restecg)
+    thalach = st.slider('Maximum Heart Rate Achieved', 70, 220, 150)
+    exang_num = st.selectbox('Exercise Induced Angina', ['No', 'Yes']).index('Yes')
+    oldpeak = st.slider('ST Depression Induced by Exercise', 0.0, 6.2, 1.0)
+    slope_num = st.selectbox('Slope of Peak Exercise ST Segment', ['Upsloping', 'Flat', 'Downsloping']).index('Flat')
+    ca = st.slider('Number of Major Vessels Colored by Fluoroscopy', 0, 4, 1)
+    thal_num = st.selectbox('Thalassemia', ['Normal', 'Fixed Defect', 'Reversible Defect']).index('Normal')
+
+    # Prediction Button
+    if st.button('Predict'):
+        # Prepare input data
+        user_input = pd.DataFrame({
+            'age': [age], 'sex': [sex_num], 'cp': [cp_num], 'trestbps': [trestbps],
+            'chol': [chol], 'fbs': [fbs_num], 'restecg': [restecg_num], 'thalach': [thalach],
+            'exang': [exang_num], 'oldpeak': [oldpeak], 'slope': [slope_num], 'ca': [ca], 'thal': [thal_num]
+        })
+
+        # Normalize input data
+        user_input = (user_input - mean_std_values['mean']) / mean_std_values['std']
+        
+        # Make prediction
+        prediction = model.predict(user_input)
+        prediction_proba = model.predict_proba(user_input)
+        confidence = prediction_proba[0][1] if prediction[0] == 1 else prediction_proba[0][0]
+        riskrate = (((confidence * 10000) // 1) / 100) - s if prediction[0] == 1 else 0
+
+        # Store riskrate in session state
+        st.session_state.riskrate = riskrate
+        st.session_state.predicted = True
+        st.session_state.view_accuracy = False  # Reset accuracy view
+
+        # Display Prediction Result
+        if prediction[0] == 1:
+            st.markdown(f"<p style='background-color:red; color:white; padding:10px;'>Prediction: Positive <br> Heart Risk Rate: {riskrate}%</p>", unsafe_allow_html=True)
+            st.info("You are at elevated risk for heart disease. Schedule an appointment with your doctor soon.")
+
+            # Nearby Heart Specialists
+            st.subheader("Suggested Nearby Heart Specialists")
+            st.info("1. G. Kuppuswamy Naidu Memorial Hospital - Contact: 0422 430 5300")
+            st.info("2. CARDIAC HEALTH CARE CENTRE - Contact: 98422 65626")
+            st.info("3. Dr. Ramprakash Heart Clinic - Contact: 88839 21571")
+
+        else:
+            st.markdown("<p style='background-color:green; color:white; padding:10px;'>Prediction: Negative</p>", unsafe_allow_html=True)
+            st.info("Your results show low risk for heart disease. Maintain a healthy lifestyle.")
+
+        # Show "View Accuracy" button inside prediction result
+        if st.button("View Accuracy"):
+            st.session_state.view_accuracy = True
+
+    # Accuracy Progress (Triggered by "View Accuracy")
+    if st.session_state.predicted and st.session_state.view_accuracy:
+        chart(st.session_state.riskrate, "Accuracy of Risk Rate")
+        pbar(st.session_state.riskrate)
+
+# Main App Interface
+st.title("Heart Risk Rate Detection System")
+
+# Sidebar Navigation
+activities = ["Introduction", "User Guide", "Prediction", "About Us"]
+choice = st.sidebar.selectbox("Select Activities", activities)
+
+if choice == 'Introduction':
+    image = Image.open('img.jpg')
+    st.image(image, use_container_width=True)
+    st.markdown(
+        "Heart disease remains one of the leading causes of mortality worldwide. Early detection and proactive management can significantly reduce the risk. Our Heart Risk Rate Prediction System is designed to assist healthcare professionals and individuals in assessing heart disease risk using advanced machine learning algorithms."
+    )
+
+elif choice == 'User Guide':
+    st.subheader("How to Use the System")
+    st.write("1. **Input Your Data:** Enter your health parameters like age, cholesterol, blood pressure, etc.")
+    st.write("2. **Click Predict:** The system will analyze your data and show the results.")
+    st.write("3. **View Accuracy:** After prediction, you can check the accuracy progress.")
+
+elif choice == 'Prediction':
+    st.subheader("Check Your Heart Risk Rate:")
+    heart()
+
+elif choice == "About Us":
+    st.info("CREATED BY MADHUMITHA")
+    st.info("Contact us: madhuvelu1@gmail.com")
